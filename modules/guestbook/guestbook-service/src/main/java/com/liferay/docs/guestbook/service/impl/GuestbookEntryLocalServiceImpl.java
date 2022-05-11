@@ -20,148 +20,153 @@ import com.liferay.docs.guestbook.exception.GuestbookEntryNameException;
 import com.liferay.docs.guestbook.model.GuestbookEntry;
 import com.liferay.docs.guestbook.service.base.GuestbookEntryLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
-
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
-import org.osgi.service.component.annotations.Component;
 
 import java.util.Date;
 import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
 
 /**
  * @author liferay
  */
 @Component(
-        property = "model.class.name=com.liferay.docs.guestbook.model.GuestbookEntry",
-        service = AopService.class
+	property = "model.class.name=com.liferay.docs.guestbook.model.GuestbookEntry",
+	service = AopService.class
 )
 public class GuestbookEntryLocalServiceImpl
-        extends GuestbookEntryLocalServiceBaseImpl {
-    public GuestbookEntry addGuestbookEntry(long userId, long guestbookId, String name,
-                                            String email, String message, ServiceContext serviceContext)
-            throws PortalException {
+	extends GuestbookEntryLocalServiceBaseImpl {
 
-        long groupId = serviceContext.getScopeGroupId();
+	public GuestbookEntry addGuestbookEntry(
+			long userId, long guestbookId, String name, String email,
+			String message, ServiceContext serviceContext)
+		throws PortalException {
 
-        User user = userLocalService.getUserById(userId);
+		long groupId = serviceContext.getScopeGroupId();
 
-        Date now = new Date();
+		User user = userLocalService.getUserById(userId);
 
-        validate(name, email, message);
+		Date now = new Date();
 
-        long entryId = counterLocalService.increment();
+		validate(name, email, message);
 
-        GuestbookEntry entry = guestbookEntryPersistence.create(entryId);
+		long entryId = counterLocalService.increment();
 
-        entry.setUuid(serviceContext.getUuid());
-        entry.setUserId(userId);
-        entry.setGroupId(groupId);
-        entry.setCompanyId(user.getCompanyId());
-        entry.setUserName(user.getFullName());
-        entry.setCreateDate(serviceContext.getCreateDate(now));
-        entry.setModifiedDate(serviceContext.getModifiedDate(now));
-        entry.setExpandoBridgeAttributes(serviceContext);
-        entry.setGuestbookId(guestbookId);
-        entry.setName(name);
-        entry.setEmail(email);
-        entry.setMessage(message);
+		GuestbookEntry entry = guestbookEntryPersistence.create(entryId);
 
-        guestbookEntryPersistence.update(entry);
+		entry.setUuid(serviceContext.getUuid());
+		entry.setUserId(userId);
+		entry.setGroupId(groupId);
+		entry.setCompanyId(user.getCompanyId());
+		entry.setUserName(user.getFullName());
+		entry.setCreateDate(serviceContext.getCreateDate(now));
+		entry.setModifiedDate(serviceContext.getModifiedDate(now));
+		entry.setExpandoBridgeAttributes(serviceContext);
+		entry.setGuestbookId(guestbookId);
+		entry.setName(name);
+		entry.setEmail(email);
+		entry.setMessage(message);
 
-        // Calls to other Liferay frameworks go here
+		guestbookEntryPersistence.update(entry);
 
-        return entry;
-    }
+		// Calls to other Liferay frameworks go here
 
-    public GuestbookEntry updateGuestbookEntry(long userId, long guestbookId,
-                                               long entryId, String name, String email, String message,
-                                               ServiceContext serviceContext)
-            throws PortalException, SystemException {
+		return entry;
+	}
 
-        Date now = new Date();
+	public GuestbookEntry deleteGuestbookEntry(GuestbookEntry entry) {
+		guestbookEntryPersistence.remove(entry);
 
-        validate(name, email, message);
+		return entry;
+	}
 
-        GuestbookEntry entry =
-                guestbookEntryPersistence.findByPrimaryKey(entryId);
+	public GuestbookEntry deleteGuestbookEntry(long entryId)
+		throws PortalException {
 
-        User user = userLocalService.getUserById(userId);
+		GuestbookEntry entry = guestbookEntryPersistence.findByPrimaryKey(
+			entryId);
 
-        entry.setUserId(userId);
-        entry.setUserName(user.getFullName());
-        entry.setModifiedDate(serviceContext.getModifiedDate(now));
-        entry.setName(name);
-        entry.setEmail(email);
-        entry.setMessage(message);
-        entry.setExpandoBridgeAttributes(serviceContext);
+		return deleteGuestbookEntry(entry);
+	}
 
-        guestbookEntryPersistence.update(entry);
+	public List<GuestbookEntry> getGuestbookEntries(
+		long groupId, long guestbookId) {
 
-        // Integrate with Liferay frameworks here.
+		return guestbookEntryPersistence.findByG_G(groupId, guestbookId);
+	}
 
-        return entry;
-    }
+	public List<GuestbookEntry> getGuestbookEntries(
+		long groupId, long guestbookId, int start, int end) {
 
-    public GuestbookEntry deleteGuestbookEntry(GuestbookEntry entry) {
+		return guestbookEntryPersistence.findByG_G(
+			groupId, guestbookId, start, end);
+	}
 
-        guestbookEntryPersistence.remove(entry);
+	public List<GuestbookEntry> getGuestbookEntries(
+		long groupId, long guestbookId, int start, int end,
+		OrderByComparator<GuestbookEntry> obc) {
 
-        return entry;
-    }
+		return guestbookEntryPersistence.findByG_G(
+			groupId, guestbookId, start, end, obc);
+	}
 
-    public GuestbookEntry deleteGuestbookEntry(long entryId) throws PortalException {
+	public int getGuestbookEntriesCount(long groupId, long guestbookId) {
+		return guestbookEntryPersistence.countByG_G(groupId, guestbookId);
+	}
 
-        GuestbookEntry entry =
-                guestbookEntryPersistence.findByPrimaryKey(entryId);
+	public GuestbookEntry getGuestbookEntry(long entryId)
+		throws PortalException {
 
-        return deleteGuestbookEntry(entry);
-    }
+		return guestbookEntryPersistence.findByPrimaryKey(entryId);
+	}
 
-    public List<GuestbookEntry> getGuestbookEntries(long groupId, long guestbookId) {
-        return guestbookEntryPersistence.findByG_G(groupId, guestbookId);
-    }
+	public GuestbookEntry updateGuestbookEntry(
+			long userId, long guestbookId, long entryId, String name,
+			String email, String message, ServiceContext serviceContext)
+		throws PortalException {
 
-    public List<GuestbookEntry> getGuestbookEntries(long groupId, long guestbookId,
-                                                    int start, int end) throws SystemException {
+		Date now = new Date();
 
-        return guestbookEntryPersistence.findByG_G(groupId, guestbookId, start,
-                end);
-    }
+		validate(name, email, message);
 
-    public List<GuestbookEntry> getGuestbookEntries(long groupId, long guestbookId,
-                                                    int start, int end, OrderByComparator<GuestbookEntry> obc) {
+		GuestbookEntry entry = guestbookEntryPersistence.findByPrimaryKey(
+			entryId);
 
-        return guestbookEntryPersistence.findByG_G(groupId, guestbookId, start,
-                end, obc);
-    }
+		User user = userLocalService.getUserById(userId);
 
-    public GuestbookEntry getGuestbookEntry(long entryId) throws PortalException {
-        return guestbookEntryPersistence.findByPrimaryKey(entryId);
-    }
+		entry.setUserId(userId);
+		entry.setUserName(user.getFullName());
+		entry.setModifiedDate(serviceContext.getModifiedDate(now));
+		entry.setName(name);
+		entry.setEmail(email);
+		entry.setMessage(message);
+		entry.setExpandoBridgeAttributes(serviceContext);
 
-    public int getGuestbookEntriesCount(long groupId, long guestbookId) {
-        return guestbookEntryPersistence.countByG_G(groupId, guestbookId);
-    }
+		guestbookEntryPersistence.update(entry);
 
-    protected void validate(String name, String email, String entry)
-            throws PortalException {
+		// Integrate with Liferay frameworks here.
 
-        if (Validator.isNull(name)) {
-            throw new GuestbookEntryNameException();
-        }
+		return entry;
+	}
 
-        if (!Validator.isEmailAddress(email)) {
-            throw new GuestbookEntryEmailException();
-        }
+	protected void validate(String name, String email, String entry)
+		throws PortalException {
 
-        if (Validator.isNull(entry)) {
-            throw new GuestbookEntryMessageException();
-        }
-    }
+		if (Validator.isNull(name)) {
+			throw new GuestbookEntryNameException();
+		}
 
+		if (!Validator.isEmailAddress(email)) {
+			throw new GuestbookEntryEmailException();
+		}
+
+		if (Validator.isNull(entry)) {
+			throw new GuestbookEntryMessageException();
+		}
+	}
 
 }
